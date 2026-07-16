@@ -79,6 +79,8 @@ class Match(BaseModel):
     stage: str
     home: str
     away: str
+    home_code: str
+    away_code: str
     kickoff_utc: datetime
     gates_open_utc: datetime
     venue: str

@@ -12,6 +12,23 @@ from .clock import phase_for_minute
 from .stadium import StadiumRepository
 
 
+def score_at(match: Match, match_minute: int | None) -> tuple[int, int]:
+    """Mock scoreboard: replay the scripted goal events up to a match minute."""
+    if match_minute is None:
+        return 0, 0
+    home = sum(
+        1
+        for event in match.events
+        if event.type == "goal" and event.team == match.home_code and event.minute <= match_minute
+    )
+    away = sum(
+        1
+        for event in match.events
+        if event.type == "goal" and event.team == match.away_code and event.minute <= match_minute
+    )
+    return home, away
+
+
 @dataclass(frozen=True)
 class FanState:
     ticket: Ticket

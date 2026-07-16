@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from .api.rate_limit import Limiters
 from .api.routes import router
 from .config import get_settings
 from .core.clock import SimClock
@@ -17,6 +18,12 @@ from .core.context import ContextService
 from .core.crowd import CrowdSimulator
 from .core.routing import Router
 from .core.stadium import load_match_fixture, load_repository
+from .llm.chat import ChatService
+from .llm.gemini import GeminiProvider
+from .llm.mock import MockProvider
+from .llm.provider import ModelProvider
+from .llm.sessions import SessionStore
+from .llm.tools import build_tool_registry
 
 logger = logging.getLogger("stadium_copilot")
 
@@ -38,6 +45,26 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.context = ContextService(repo, match, ticket)
     app.state.provider_name = "gemini" if settings.gemini_api_key else "mock"
     app.state.model_name = settings.gemini_model if settings.gemini_api_key else None
+
+    mock = MockProvider()
+    primary: ModelProvider = (
+        GeminiProvider(settings.gemini_api_key, settings.gemini_model)
+        if settings.gemini_api_key
+        else mock
+    )
+    app.state.sessions = SessionStore()
+    app.state.limiters = Limiters()
+    app.state.chat_service = ChatService(
+        primary=primary,
+        mock_fallback=mock,
+        registry=build_tool_registry(),
+        sessions=app.state.sessions,
+        repo=repo,
+        crowd=app.state.crowd,
+        router=app.state.router_engine,
+        context=app.state.context,
+        clock=app.state.clock,
+    )
     logger.info("service ready (provider=%s)", app.state.provider_name)
     yield
 

@@ -4,6 +4,8 @@
     "stage": "FIFA World Cup 2026 - Final",
     "home": "Argentina",
     "away": "France",
+    "home_code": "ARG",
+    "away_code": "FRA",
     "kickoff_utc": "2026-07-19T19:00:00Z",
     "gates_open_utc": "2026-07-19T16:00:00Z",
     "venue": "MetLife Stadium",
