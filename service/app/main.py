@@ -50,7 +50,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     mock = MockProvider()
     primary: ModelProvider = (
-        GeminiProvider(settings.gemini_api_key, settings.gemini_model)
+        GeminiProvider(
+            settings.gemini_api_key,
+            [settings.gemini_model, settings.gemini_fallback_model],
+        )
         if settings.gemini_api_key
         else mock
     )

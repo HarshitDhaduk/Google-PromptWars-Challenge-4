@@ -1,8 +1,13 @@
 """Application settings loaded from environment variables and an optional .env file."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Anchor the .env lookup to the service directory so it works no matter
+# where the process (or a reloader-spawned worker) was launched from.
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -13,13 +18,18 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    # Rolling aliases keep fresh API keys working when Google retires pinned
+    # model ids for new projects (as happened to gemini-2.5-flash). When the
+    # primary model is capacity-crunched (503) the provider retries on the
+    # fallback before degrading to demo mode.
+    gemini_model: str = "gemini-flash-latest"
+    gemini_fallback_model: str = "gemini-flash-lite-latest"
 
     # Deterministic crowd simulation seed; same seed => same crowd timeline.
     crowd_seed: int = 2026

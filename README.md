@@ -30,7 +30,8 @@ advice).
 
 ## How GenAI is used (central, not decorative)
 
-The assistant is **Google Gemini** (`gemini-2.5-flash`) running a **manual function-calling
+The assistant is **Google Gemini** (`gemini-flash-latest`, with automatic rotation to
+`gemini-flash-lite-latest` during capacity spikes) running a **manual function-calling
 loop** in the Python service. The model never free-styles stadium facts: it must call one of
 seven **read-only, validated tools**, and every reply in the UI shows *"grounded via
 &lt;tool&gt;"* chips as evidence.
@@ -169,7 +170,8 @@ python run.py           # restart; /health now reports provider "gemini"
 | Variable | Default | Purpose |
 |---|---|---|
 | `GEMINI_API_KEY` | *(empty)* | Enables live Gemini; empty = demo mode |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model for chat |
+| `GEMINI_MODEL` | `gemini-flash-latest` | Primary Gemini model (rolling alias survives model retirements) |
+| `GEMINI_FALLBACK_MODEL` | `gemini-flash-lite-latest` | Tried automatically when the primary returns a capacity error |
 | `CROWD_SEED` | `2026` | Deterministic crowd/seat simulation seed |
 | `DEMO_SPEED` | `30` | Sim-minutes advanced per real minute |
 | `DEMO_START_OFFSET_MIN` | `-45` | Sim start relative to kickoff |

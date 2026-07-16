@@ -91,12 +91,14 @@ def build_contents(
 class GeminiProvider:
     name = "gemini"
 
-    def __init__(self, api_key: str, model: str) -> None:
+    def __init__(self, api_key: str, models: Sequence[str]) -> None:
         self._client = genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_MS),
         )
-        self._model = model
+        # Ordered, de-duplicated: the primary model first, then fallbacks
+        # tried when the primary is unavailable (e.g. 503 capacity spikes).
+        self._models = list(dict.fromkeys(model for model in models if model))
 
     def generate_turn(
         self,
@@ -116,28 +118,34 @@ class GeminiProvider:
             temperature=TEMPERATURE,
             max_output_tokens=MAX_OUTPUT_TOKENS,
         )
-        try:
-            response = self._client.models.generate_content(
-                model=self._model,
-                contents=build_contents(history, message, exchanges),
-                config=config,
-            )
-        except Exception as err:
-            # Log the error class only; never echo payloads or headers.
-            logger.warning("gemini call failed: %s", type(err).__name__)
-            raise ProviderError(f"gemini call failed: {type(err).__name__}") from err
+        contents = build_contents(history, message, exchanges)
 
-        calls = response.function_calls or []
-        if calls:
-            raw_content = response.candidates[0].content if response.candidates else None
-            return FunctionCallTurn(
-                calls=[
-                    ToolCall(name=call.name or "", args=dict(call.args or {}))
-                    for call in calls
-                ],
-                raw_content=raw_content,
-            )
-        text = (response.text or "").strip()
-        if not text:
-            raise ProviderError("gemini returned an empty response")
-        return TextTurn(text=text)
+        last_error: Exception | None = None
+        for model in self._models:
+            try:
+                response = self._client.models.generate_content(
+                    model=model, contents=contents, config=config
+                )
+                return _to_turn(response)
+            except Exception as err:
+                # Log the error class only; never echo payloads or headers.
+                logger.warning("gemini call failed on %s: %s", model, type(err).__name__)
+                last_error = err
+        raise ProviderError("all gemini models failed") from last_error
+
+
+def _to_turn(response: types.GenerateContentResponse) -> Turn:
+    calls = response.function_calls or []
+    if calls:
+        raw_content = response.candidates[0].content if response.candidates else None
+        return FunctionCallTurn(
+            calls=[
+                ToolCall(name=call.name or "", args=dict(call.args or {}))
+                for call in calls
+            ],
+            raw_content=raw_content,
+        )
+    text = (response.text or "").strip()
+    if not text:
+        raise ProviderError("gemini returned an empty response")
+    return TextTurn(text=text)
