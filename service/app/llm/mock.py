@@ -221,14 +221,27 @@ _INTENTS: tuple[_Intent, ...] = (
         ToolCall("get_match_info", {}),
     ),
     _Intent(
+        "seats_available",
+        _kw(
+            "seats", "seat availability", "available seats", "any seats", "upgrade",
+            "resale", "extra tickets", "buy tickets",
+            "asientos", "hay asientos", "entradas disponibles",
+            "places disponibles", "billets disponibles",
+            "sitze", "freie plätze", "karten verfügbar",
+            "assentos", "ingressos disponíveis",
+            "مقاعد", "تذاكر متاحة",
+        ),
+        ToolCall("find_available_seats", {}),
+    ),
+    _Intent(
         "seat_route",
         _kw(
-            "seat", "my section", "find my",
-            "asiento", "mi sección", "mi seccion",
+            "seat", "my section", "find my", "section", "block",
+            "asiento", "mi sección", "mi seccion", "sección",
             "siège", "siege", "ma place",
             "sitzplatz", "sitz", "platz",
-            "assento", "meu lugar",
-            "مقعد", "مقعدي",
+            "assento", "meu lugar", "seção", "secao",
+            "مقعد", "مقعدي", "القسم",
         ),
         ToolCall("get_route", {"to": "my_seat"}),
     ),
@@ -316,6 +329,9 @@ _STRINGS = {
         "goals": "Goals: {list}.",
         "no_goals": "No goals yet.",
         "ticket": "You are in Section {section}, Row {row}, Seat {seat} - enter via Gate {gate}. You are currently near {current}.",
+        "seats_list": "Sections with seats still available:\n{items}\nThe stand with the most availability is highlighted on the map.",
+        "seats_line": "{index}. Section {section} - {zone} ({available} seats)",
+        "seats_empty": "Right now every section is sold out. Official resale may release returns - check Guest Services at Gate A or C.",
         "error": "I could not find that. Try a section number like '324', an amenity, or 'my seat'. Guest Services at Gate A or C can also help.",
         "capabilities": (
             "I can guide you around MetLife Stadium: find your seat, the nearest food "
@@ -340,6 +356,9 @@ _STRINGS = {
         "goals": "Goles: {list}.",
         "no_goals": "Aún no hay goles.",
         "ticket": "Estás en la Sección {section}, Fila {row}, Asiento {seat}; entra por la Puerta {gate}. Ahora estás cerca de {current}.",
+        "seats_list": "Secciones con asientos disponibles:\n{items}\nLa zona con más disponibilidad está resaltada en el mapa.",
+        "seats_line": "{index}. Sección {section} - {zone} ({available} asientos)",
+        "seats_empty": "Ahora mismo todo está agotado. La reventa oficial puede liberar entradas: consulta Atención al Cliente en la Puerta A o C.",
         "error": "No pude encontrar eso. Prueba con un número de sección como '324', un servicio, o 'mi asiento'.",
         "capabilities": (
             "Puedo guiarte por el MetLife Stadium: encontrar tu asiento, la comida más cercana "
@@ -364,6 +383,9 @@ _STRINGS = {
         "goals": "Buts : {list}.",
         "no_goals": "Pas encore de but.",
         "ticket": "Vous êtes en Section {section}, Rang {row}, Place {seat} ; entrez par la Porte {gate}. Vous êtes actuellement près de {current}.",
+        "seats_list": "Sections avec des places encore disponibles :\n{items}\nLa tribune avec le plus de places est surlignée sur le plan.",
+        "seats_line": "{index}. Section {section} - {zone} ({available} places)",
+        "seats_empty": "Tout est complet pour le moment. La revente officielle peut libérer des places - voyez les services aux spectateurs (Porte A ou C).",
         "error": "Je n'ai pas trouvé. Essayez un numéro de section comme '324', un service, ou 'ma place'.",
         "capabilities": (
             "Je peux vous guider dans le MetLife Stadium : trouver votre place, la nourriture la plus "
@@ -462,6 +484,21 @@ def _render(call: ToolCall, data: dict, lang: str) -> str:
             current=data["current_location_name"],
         )
 
+    if call.name == "find_available_seats":
+        sections = data.get("sections", [])
+        if not sections:
+            return strings["seats_empty"]
+        items = "\n".join(
+            strings["seats_line"].format(
+                index=index,
+                section=item["section"],
+                zone=item["zone_name"],
+                available=item["available"],
+            )
+            for index, item in enumerate(sections, start=1)
+        )
+        return strings["seats_list"].format(items=items)
+
     return strings["capabilities"]
 
 
@@ -491,6 +528,10 @@ class MockProvider:
                 dietary = _dietary_filter(message)
                 if dietary is not None:
                     call = ToolCall(call.name, {**call.args, "dietary": dietary})
+            if call.name == "get_route":
+                section = re.search(r"\b(\d{3})\b", message)
+                if section:
+                    call = ToolCall(call.name, {**call.args, "to": section.group(1)})
             return FunctionCallTurn(calls=[call])
 
         exchange = exchanges[-1]

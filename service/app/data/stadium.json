@@ -15,7 +15,7 @@
     { "id": "conc_100_w", "name": "West Lower Concourse", "kind": "concourse", "level": 100, "x": 240, "y": 350, "sections": null },
     { "id": "conc_300_n", "name": "North Upper Concourse", "kind": "concourse", "level": 300, "x": 500, "y": 80, "sections": null },
     { "id": "conc_300_e", "name": "East Upper Concourse", "kind": "concourse", "level": 300, "x": 900, "y": 350, "sections": null },
-    { "id": "conc_300_s", "name": "South Upper Concourse", "kind": "concourse", "level": 300, "x": 500, "y": 640, "sections": null },
+    { "id": "conc_300_s", "name": "South Upper Concourse", "kind": "concourse", "level": 300, "x": 500, "y": 616, "sections": null },
     { "id": "conc_300_w", "name": "West Upper Concourse", "kind": "concourse", "level": 300, "x": 100, "y": 350, "sections": null },
     { "id": "sec_111_117", "name": "Sections 111-117 (Lower North)", "kind": "section", "level": 100, "x": 500, "y": 258, "sections": ["111", "112", "113", "114", "115", "116", "117"] },
     { "id": "sec_120_126", "name": "Sections 120-126 (Lower East)", "kind": "section", "level": 100, "x": 688, "y": 350, "sections": ["120", "121", "122", "123", "124", "125", "126"] },
@@ -25,7 +25,7 @@
     { "id": "sec_320_326", "name": "Sections 320-326 (Upper East)", "kind": "section", "level": 300, "x": 862, "y": 240, "sections": ["320", "321", "322", "323", "324", "325", "326"] },
     { "id": "sec_333_339", "name": "Sections 333-339 (Upper South)", "kind": "section", "level": 300, "x": 360, "y": 582, "sections": ["333", "334", "335", "336", "337", "338", "339"] },
     { "id": "sec_344_350", "name": "Sections 344-350 (Upper West)", "kind": "section", "level": 300, "x": 138, "y": 240, "sections": ["344", "345", "346", "347", "348", "349", "350"] },
-    { "id": "transit_hub", "name": "Meadowlands Rail & Bus Plaza", "kind": "transit", "level": 0, "x": 500, "y": 672, "sections": null }
+    { "id": "transit_hub", "name": "Meadowlands Rail & Bus Plaza", "kind": "transit", "level": 0, "x": 500, "y": 664, "sections": null }
   ],
   "edges": [
     { "id": "e_gate_a_c100n", "from": "gate_a", "to": "conc_100_n", "kind": "walkway", "base_seconds": 120 },

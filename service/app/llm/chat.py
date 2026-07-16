@@ -12,6 +12,7 @@ from ..core.clock import SimClock
 from ..core.context import ContextService
 from ..core.crowd import CrowdSimulator
 from ..core.routing import Router
+from ..core.seats import SeatSimulator
 from ..core.stadium import StadiumRepository
 from ..models.api import ChatRequest, ChatResponse, ToolCallMeta, TurnProvider
 from ..models.entities import UiAction
@@ -58,6 +59,7 @@ class ChatService:
         sessions: SessionStore,
         repo: StadiumRepository,
         crowd: CrowdSimulator,
+        seats: SeatSimulator,
         router: Router,
         context: ContextService,
         clock: SimClock,
@@ -68,6 +70,7 @@ class ChatService:
         self._sessions = sessions
         self._repo = repo
         self._crowd = crowd
+        self._seats = seats
         self._router = router
         self._context = context
         self._clock = clock
@@ -75,7 +78,13 @@ class ChatService:
     def handle(self, request: ChatRequest) -> ChatResponse:
         minute = self._clock.sim_minute()
         fan = self._context.state(minute)
-        runtime = ToolRuntime(repo=self._repo, crowd=self._crowd, router=self._router, fan=fan)
+        runtime = ToolRuntime(
+            repo=self._repo,
+            crowd=self._crowd,
+            seats=self._seats,
+            router=self._router,
+            fan=fan,
+        )
         system = build_system_prompt(fan, self._repo, request.locale)
         history = self._sessions.history(request.session_id)
 

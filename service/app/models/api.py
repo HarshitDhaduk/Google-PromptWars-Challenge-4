@@ -12,6 +12,7 @@ from .entities import (
     Edge,
     Match,
     Phase,
+    SeatInfo,
     StadiumInfo,
     Ticket,
     UiAction,
@@ -73,7 +74,16 @@ class CrowdResponse(BaseModel):
     phase: Phase
     match_minute: int | None
     minutes_to_kickoff: int | None
+    # Where the fan most likely is right now (inferred: gate before kickoff,
+    # seat afterwards) - drives the "you are here" beacon on the maps.
+    fan_zone_id: str
     zones: dict[str, CrowdInfo]
+
+
+class SeatsResponse(BaseModel):
+    sim_time: datetime
+    phase: Phase
+    sections: dict[str, SeatInfo]
 
 
 class SimInfo(BaseModel):

@@ -10,6 +10,7 @@ from ..models.api import (
     ContextResponse,
     CrowdResponse,
     HealthResponse,
+    SeatsResponse,
     SimInfo,
     StadiumResponse,
 )
@@ -53,7 +54,24 @@ def crowd(request: Request, response: Response) -> CrowdResponse:
         phase=phase_for_minute(minute),
         match_minute=match_minute_for(minute),
         minutes_to_kickoff=minutes_to_kickoff_for(minute),
+        fan_zone_id=state.context.state(minute).current_zone.id,
         zones=state.crowd.snapshot(minute),
+    )
+
+
+@router.get(
+    "/api/seats",
+    response_model=SeatsResponse,
+    dependencies=[Depends(enforce_read_limits)],
+)
+def seats(request: Request, response: Response) -> SeatsResponse:
+    response.headers["Cache-Control"] = "no-store"
+    state = request.app.state
+    minute = state.clock.sim_minute()
+    return SeatsResponse(
+        sim_time=state.clock.sim_time(),
+        phase=phase_for_minute(minute),
+        sections=state.seats.snapshot(minute),
     )
 
 

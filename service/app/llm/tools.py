@@ -15,6 +15,7 @@ from ..core.clock import match_minute_for, minutes_to_kickoff_for
 from ..core.context import FanState, score_at
 from ..core.crowd import CrowdSimulator
 from ..core.routing import RouteNotFoundError, Router
+from ..core.seats import SeatSimulator
 from ..core.stadium import StadiumRepository
 from ..models.entities import (
     AmenityWithEta,
@@ -42,6 +43,7 @@ class ToolRuntime:
 
     repo: StadiumRepository
     crowd: CrowdSimulator
+    seats: SeatSimulator
     router: Router
     fan: FanState
 
@@ -301,6 +303,40 @@ def _get_crowd_status(runtime: ToolRuntime, args: dict) -> tuple[dict, UiAction 
     return data, None
 
 
+def _find_available_seats(runtime: ToolRuntime, args: dict) -> tuple[dict, UiAction | None]:
+    try:
+        limit = int(args.get("limit") or 5)
+    except (TypeError, ValueError):
+        limit = 5
+    limit = max(1, min(limit, 10))
+
+    snapshot = runtime.seats.snapshot(runtime.fan.minute)
+    open_sections = sorted(
+        (info for info in snapshot.values() if info.available > 0),
+        key=lambda info: (-info.available, info.section),
+    )[:limit]
+
+    data = {
+        "phase": runtime.fan.phase,
+        "sections": [
+            {
+                "section": info.section,
+                "zone_id": info.zone_id,
+                "zone_name": runtime.repo.zones_by_id[info.zone_id].name,
+                "level": info.level,
+                "available": info.available,
+                "status": info.status,
+            }
+            for info in open_sections
+        ],
+        "note": "Availability is box-office/resale inventory, not a reservation.",
+    }
+    if not open_sections:
+        data["note"] = "Every section is currently sold out."
+        return data, None
+    return data, HighlightZoneAction(zone_id=open_sections[0].zone_id)
+
+
 def _get_transit_advice(runtime: ToolRuntime, _: dict) -> tuple[dict, UiAction | None]:
     fan = runtime.fan
     minute = fan.minute
@@ -482,6 +518,28 @@ def build_tool_registry() -> ToolRegistry:
                 },
             ),
             _get_crowd_status,
+        ),
+        Tool(
+            ToolDeclaration(
+                name="find_available_seats",
+                description=(
+                    "Sections that still have seats available at the box office or via "
+                    "official resale, sorted by how many are left. Use when the fan asks "
+                    "about seat availability, upgrades, or buying extra tickets."
+                ),
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "description": "Maximum number of sections to return (default 5).",
+                        }
+                    },
+                },
+            ),
+            _find_available_seats,
         ),
         Tool(
             ToolDeclaration(

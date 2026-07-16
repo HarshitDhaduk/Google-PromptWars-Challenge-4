@@ -3,6 +3,7 @@
 import pytest
 
 from app.core.context import ContextService
+from app.core.seats import SeatSimulator
 from app.llm.tools import ToolRuntime, build_tool_registry
 from app.models.entities import (
     HighlightAmenitiesAction,
@@ -24,9 +25,12 @@ def registry():
 def runtime_factory(repo, crowd, router, match_and_ticket):
     match, ticket = match_and_ticket
     context = ContextService(repo, match, ticket)
+    seats = SeatSimulator(repo, seed=2026)
 
     def make(minute: float) -> ToolRuntime:
-        return ToolRuntime(repo=repo, crowd=crowd, router=router, fan=context.state(minute))
+        return ToolRuntime(
+            repo=repo, crowd=crowd, seats=seats, router=router, fan=context.state(minute)
+        )
 
     return make
 

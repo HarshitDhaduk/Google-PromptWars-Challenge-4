@@ -17,6 +17,7 @@ from .core.clock import SimClock
 from .core.context import ContextService
 from .core.crowd import CrowdSimulator
 from .core.routing import Router
+from .core.seats import SeatSimulator
 from .core.stadium import load_match_fixture, load_repository
 from .llm.chat import ChatService
 from .llm.gemini import GeminiProvider
@@ -41,6 +42,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         match.kickoff_utc, settings.demo_start_offset_min, settings.demo_speed
     )
     app.state.crowd = CrowdSimulator(repo, seed=settings.crowd_seed)
+    app.state.seats = SeatSimulator(repo, seed=settings.crowd_seed)
     app.state.router_engine = Router(repo, app.state.crowd)
     app.state.context = ContextService(repo, match, ticket)
     app.state.provider_name = "gemini" if settings.gemini_api_key else "mock"
@@ -61,6 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         sessions=app.state.sessions,
         repo=repo,
         crowd=app.state.crowd,
+        seats=app.state.seats,
         router=app.state.router_engine,
         context=app.state.context,
         clock=app.state.clock,

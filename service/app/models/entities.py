@@ -121,6 +121,20 @@ class CrowdInfo(BaseModel):
     multiplier: float
 
 
+SeatStatus = Literal["sold_out", "limited", "available"]
+
+
+class SeatInfo(BaseModel):
+    """Live box-office availability for one seating section."""
+
+    section: str
+    zone_id: str
+    level: int
+    capacity: int
+    available: int
+    status: SeatStatus
+
+
 class AmenityWithEta(BaseModel):
     """An amenity enriched with the walk time from the fan's current location."""
 
