@@ -1,0 +1,26 @@
+{
+  "match": {
+    "id": "wc2026-final",
+    "stage": "FIFA World Cup 2026 - Final",
+    "home": "Argentina",
+    "away": "France",
+    "kickoff_utc": "2026-07-19T19:00:00Z",
+    "gates_open_utc": "2026-07-19T16:00:00Z",
+    "venue": "MetLife Stadium",
+    "city": "East Rutherford, NJ",
+    "events": [
+      { "minute": 23, "type": "goal", "team": "ARG", "player": "J. Alvarez" },
+      { "minute": 67, "type": "goal", "team": "FRA", "player": "K. Mbappe" },
+      { "minute": 88, "type": "goal", "team": "ARG", "player": "L. Messi" }
+    ]
+  },
+  "ticket": {
+    "holder": "Guest",
+    "match_id": "wc2026-final",
+    "section": "324",
+    "row": "12",
+    "seat": "7",
+    "gate": "C",
+    "level": 300
+  }
+}
