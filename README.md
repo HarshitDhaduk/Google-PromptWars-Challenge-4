@@ -151,6 +151,11 @@ npm run dev
 Open **http://localhost:3000** — that's it. Without a key the header shows **Demo mode**
 and everything works offline.
 
+> **Windows note:** clone to a reasonably short path (e.g. `C:\dev\stadium-copilot`).
+> The `google-genai` package contains deeply nested files, and very long clone paths can
+> hit the legacy 260-character limit during `pip install` unless
+> [long paths are enabled](https://pip.pypa.io/warnings/enable-long-paths).
+
 **With live Gemini:** get a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey), then:
 
 ```bash
