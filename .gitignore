@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build output
+.next/
+out/
+build/
+dist/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment files (secrets) — .env.example files are committed
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Test & coverage
+coverage/
+.coverage
+htmlcov/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
